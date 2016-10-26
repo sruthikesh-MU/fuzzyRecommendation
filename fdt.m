@@ -1,4 +1,4 @@
-function fdt(inFile, method)
+function fdt(inFile, mf, op)
 % Fuzzy decision trees
 
 inp = csvread(inFile);
@@ -39,13 +39,16 @@ price.Expensive = [10000 20000 40000 40000];
 end
 
 % Decision Tree for the given input
-function out = decisionTree(inp, risk, valueLoss, horsepower, cityMPG, highwayMPG, price)
+function assesment = decisionTree(inp, decisionTree, risk, valueLoss, horsepower, cityMPG, highwayMPG, price)
 
 % Number of inputs
 N = size(inp, 1);
 
 for i=1:N % Loop for all the input data for the decision tree
-    
+    if decisionTree==1
+        assesment = fuzzyOp([fuzzyOp([fuzzyOp([], AND_F, 'zadeh'), fuzzyOp(in(i,), )], AND_F, 'zadeh'), ], AND_F, 'zadeh');
+    elseif decisionTree=2
+    end
 end
 
 end
