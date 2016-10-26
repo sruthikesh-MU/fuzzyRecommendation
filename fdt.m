@@ -7,40 +7,34 @@ inp = csvread(inFile);
 
 % Membership funtions for the input characteristics
 % Risk
-x = (-3:3)';    % Input range for Risk
-risk.Low = trapmf_S(x, [-3 -3 -2 0]);
-risk.Average = trimf_S(x, [-2 0 2]);
-risk.High = trapmf_S(x, [0 2 3 3]);
+risk.Low = [-3 -3 -2 0];
+risk.Average = [-2 0 2];
+risk.High = [0 2 3 3];
 
 % Value Loss
-x = (0:300)';
-valueLoss.Low = trapmf_S(x, [0 0 100 200]);
-valueLoss.Average = trimf_S(x, [100 120 200]);
-valueLoss.High = trapmf_S(x, [120 200 300 300]);
+valueLoss.Low = [0 0 100 200];
+valueLoss.Average = [100 120 200];
+valueLoss.High = [120 200 300 300]; %#ok<*STRNU>
 
 % Horsepower
-x = (0:250)';
-horsepower.Low = trapmf_S(x, [0 0 60 100]);
-horsepower.Average = trimf_S(x, [60 100 140]);
-horsepower.Low = trapmf_S(x, [100 140 250 250]);
+horsepower.Low = [0 0 60 100];
+horsepower.Average = [60 100 140];
+horsepower.Low = [100 140 250 250];
 
 % City MPG
-x = (0:60)';
-cityMPG.Poor = trapmf_S(x, [0 0 20 30]);
-cityMPG.Average = trimf_S(x, [20 30 40]);
-cityMPG.Good = trapmf_S(x, [30 40 60 60]);
+cityMPG.Poor = [0 0 20 30];
+cityMPG.Average = [20 30 40];
+cityMPG.Good = [30 40 60 60];
 
 % Highway MPG
-x = (0:60)';
-highwayMPG.Poor = trapmf_S(x, [0 0 20 30]);
-highwayMPG.Average = trimf_S(x, [20 30 40]);
-highwayMPG.Good = trapmf_S(x, [30 40 60 60]);
+highwayMPG.Poor = [0 0 20 30];
+highwayMPG.Average = [20 30 40];
+highwayMPG.Good = [30 40 60 60];
 
 % Price
-x = (0:40000)';
-price.Cheap = trapmf_S(x, [0 0 7000 10000]);
-price.Average = trimf_S(x, [7000 10000 20000]);
-price.Expensive = trapmf_S(x, [10000 20000 40000 40000]);
+price.Cheap = [0 0 7000 10000];
+price.Average = [7000 10000 20000];
+price.Expensive = [10000 20000 40000 40000];
 
 end
 
@@ -56,45 +50,77 @@ end
 
 end
 
+% Fuzzy operators
+function out = fuzzyOp(in, op, model)
 
-% Membership functions
-% Trapezoidal Membership
-function trapmf_S(mf, val)
+% Models
+% zadeh, Bounded, and Yager
+
+if op==AND_F    % Fuzzy intersection or conjuction
+    if model=='zadeh'
+        out = min(in, 2);
+    elseif model=='bounded'
+        out = max(0, 1-sum(in, 2));
+    elseif model=='yager'
+        out = min(1, sum(in.^w, 2).^1/w);
+    end
+elseif op==OR_F     % Fuzzy union
+    if model=='zadeh' %#ok<*STCMP>
+        out = max(in, 2);
+    elseif model=='bounded'
+        out = min(0, sum(in, 2));
+    elseif model=='yager'
+        out = 1 - min(1, sum((1-in).^w, 2).^1/w);
+    end
+elseif op==NOT_F    % Fuzzy complement
+    if model=='zadeh'
+        out = 1-in;
+    elseif model=='bounded'
+        out = 1-in;
+    elseif model=='yager'
+        out = (1-in.^w).^1/w;
+    end
+end
+    
 
 end
 
-% Traingular Membership
-function trimf_S
-end
 
 % Membership function
 %--------------------------------------
 % mf is assumed to be of the form:
-%    {[a b c (d)], height}
+%    {[a b c d], val}
 %--------------------------------------
-function mv = eval_mf( mf, val )
+function mv = eval_mf(mf, fn)
 
-if( length(mf{1}) == 3)
+% 11 membership functions 
+% lines: traingular, trapezoidal
+% TODO
+% Smooth: gaussmf, gauss2mf, gbellmf
+% Asymmetric functions: sigmf, dsigmf, psigmf
+% Polynomial: zmf, pimf, smf
+
+if fn==trimf
     % Triangular
     if val > mf{1}(3)
         mv = 0;
     elseif val > mf{1}(2)
-        mv = mf{2} * (mf{1}(3) - val) / (mf{1}(3) - mf{1}(2));
+        mv = (mf{1}(3) - mf{2}) / (mf{1}(3) - mf{1}(2));  
     elseif val > mf{1}(1)
-        mv = mf{2} * (val - mf{1}(1)) / (mf{1}(2) - mf{1}(1));
+        mv = (mf{2} - mf{1}(1)) / (mf{1}(2) - mf{1}(1));
     else 
         mv = 0;
     end
-elseif (length(mf{1}) == 4)
+elseif fn==trapmf
     % Trapezoid
     if val > mf{1}(4)
         mv = 0;
     elseif val > mf{1}(3)
-        mv = mf{2} * (mf{1}(4) - val) / (mf{1}(4) - mf{1}(3));
+        mv = (mf{1}(4) - mf{2}) / (mf{1}(4) - mf{1}(3));
     elseif val > mf{1}(2)
-        mv = mf{2};
+        mv = 1;
     elseif val > mf{1}(1)
-        mv = mf{2} * (val - mf{1}(1)) / (mf{1}(2) - mf{1}(1));
+        mv = (mf{2} - mf{1}(1)) / (mf{1}(2) - mf{1}(1));
     else 
         mv = 0;
     end   
