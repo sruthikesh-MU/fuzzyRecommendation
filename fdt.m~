@@ -69,7 +69,7 @@ elseif mf==2    % 2nd membership function for 2nd decision tree
     
     % Price
     price.Cheap = [0 0 7000 10000];
-    price.Average = [7000 10000 40000 40000]; % Modified, membership is trapmf
+    price.Average = [7000 10000 20000]; % Modified
     price.Expensive = [10000 20000 40000 40000];
 end
 
