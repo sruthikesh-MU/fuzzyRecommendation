@@ -39,15 +39,16 @@ price.Expensive = [10000 20000 40000 40000];
 end
 
 % Decision Tree for the given input
-function assesment = decisionTree(inp, decisionTree, risk, valueLoss, horsepower, cityMPG, highwayMPG, price)
+function assesment = decisionTree(inp, decisionTree, opModel, risk, valueLoss, horsepower, cityMPG, highwayMPG, price)
 
 % Number of inputs
 N = size(inp, 1);
 
 for i=1:N % Loop for all the input data for the decision tree
     if decisionTree==1
-        assesment = fuzzyOp([fuzzyOp([fuzzyOp([], AND_F, 'zadeh'), fuzzyOp(in(i,), )], AND_F, 'zadeh'), ], AND_F, 'zadeh');
-    elseif decisionTree=2
+        opModel = 'zadeh';
+        assesment(i) = fuzzyOp([fuzzyOp([fuzzyOp([mf({highwayMPG.Good, in(i,6)}, 'trapmf'), mf({horsepower.Average, in(i,4)}, 'trimf')], 'AND_F', opModel), fuzzyOp(mf({cityMPG.Poor, in(i,5)}, 'trapmf'), 'NOT_F', opModel)], 'AND_F', opModel), fuzzyOp([fuzzyOp([mf({risk.Low, in(i,2)}, 'trapmf'), mf({valueLoss.Low, in(i,3)}, 'trapmf')],'AND_F', opModel), mf({price.Cheap, in(i,7)}, 'trapmf')], 'OR_F', opModel)], 'AND_F', opModel);
+    elseif decisionTree==2
     end
 end
 
@@ -59,15 +60,15 @@ function out = fuzzyOp(in, op, model)
 % Models
 % zadeh, Bounded, and Yager
 
-if op==AND_F    % Fuzzy intersection or conjuction
+if op=='AND_F'    % Fuzzy intersection or conjuction
     if model=='zadeh'
         out = min(in, 2);
     elseif model=='bounded'
-        out = max(0, 1-sum(in, 2));
+        out = max(0, sum(in, 2)-1);
     elseif model=='yager'
         out = min(1, sum(in.^w, 2).^1/w);
     end
-elseif op==OR_F     % Fuzzy union
+elseif op=='OR_F'     % Fuzzy union
     if model=='zadeh' %#ok<*STCMP>
         out = max(in, 2);
     elseif model=='bounded'
@@ -75,7 +76,7 @@ elseif op==OR_F     % Fuzzy union
     elseif model=='yager'
         out = 1 - min(1, sum((1-in).^w, 2).^1/w);
     end
-elseif op==NOT_F    % Fuzzy complement
+elseif op=='NOT_F'    % Fuzzy complement
     if model=='zadeh'
         out = 1-in;
     elseif model=='bounded'
