@@ -1,4 +1,4 @@
-function fdt(inFile, mf, op)
+function fdt(inFile, mf, op, decTree, w)
 % Fuzzy decision trees
 
 in = csvread(inFile);
@@ -38,14 +38,25 @@ price.Expensive = [10000 20000 40000 40000];
 
 % Decision Tree for evaluting the car for the membership function,
 % operation and assumed decision tree
-w = 1;
-assesment = decisionTree(in, 1, 'zadeh', w, risk, valueLoss, horsepower, cityMPG, highwayMPG, price);
+assesment = decisionTree(in, decTree, op, w, risk, valueLoss, horsepower, cityMPG, highwayMPG, price);
 
 [bestVal, bestIdx] = max(assesment, [], 1); % Finding the best Car
 disp(['Best Car ID is ', num2str(in(bestIdx, 1)), ' and its value is ', num2str(bestVal)]);
+close all;
+
+% Plot output car ratings for each car
+figure(1);
+plot(in(:,1), assesment)
+xlabel('Car ID')
+ylabel('Car Rating')
+title('Car assessment rating based on Fuzzy Decision Tree')
+
+% Histogram plot all the car ratings
 [counts, centers]=hist(assesment, 10);  % Histogram of output car ratings
-hist(centers, assesment, 10)
-title('Histogram for car assesment')
+figure(2);
+bar(centers, counts)
+title('Histogram for car assessment')
+
 end
 
 % Decision Tree for the given input
@@ -85,15 +96,15 @@ if strcmp(op, 'AND_F')    % Fuzzy intersection or conjuction
     elseif strcmp(model, 'bounded')
         out = max(0, sum(in, 2)-1);
     elseif strcmp(model, 'yager')
-        out = min(1, sum(in.^w, 2).^1/w);
+        out = 1 - min(1, sum((1-in).^w, 2).^1/w);
     end
 elseif strcmp(op, 'OR_F')     % Fuzzy union
     if strcmp(model, 'zadeh') %#ok<*STCMP>
         out = max(in,[], 2);
     elseif strcmp(model, 'bounded')
-        out = min(0, sum(in, 2));
+        out = min(1, sum(in, 2));
     elseif strcmp(model, 'yager')
-        out = 1 - min(1, sum((1-in).^w, 2).^1/w);
+        out = min(1, sum(in.^w, 2).^1/w);
     end
 elseif strcmp(op, 'NOT_F')    % Fuzzy complement
     if strcmp(model, 'zadeh')
